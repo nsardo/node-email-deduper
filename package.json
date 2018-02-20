@@ -1,0 +1,32 @@
+{
+  "name": "chefsteps",
+  "version": "1.0.0",
+  "description": "coding test",
+  "main": "app.js",
+  "scripts": {
+    "test": "mocha",
+    "cover": "./node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha ./test/test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nsardo/chefsteps.git"
+  },
+  "author": "Nicholas Sardo <nsardo@aol.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nsardo/chefsteps/issues"
+  },
+  "homepage": "https://github.com/nsardo/chefsteps#readme",
+  "dependencies": {
+    "bluebird": "^3.5.0",
+    "body-parser": "^1.17.2",
+    "busboy": "^0.2.14",
+    "express": "^4.15.3"
+  },
+  "devDependencies": {
+    "chai": "^4.0.2",
+    "chai-fs": "^1.0.0",
+    "istanbul": "^0.4.5",
+    "mocha": "^3.4.2"
+  }
+}

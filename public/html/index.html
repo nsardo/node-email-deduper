@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Email De-duper Algorithm</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Nicholas Sardo">
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css">
+    <script src="https://code.jquery.com/jquery-2.2.4.min.js"
+            integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44="
+            crossorigin="anonymous"></script>
+    
+  </head>
+  <body>
+    <div class="jumbotron">
+      <div class="container">
+        <h1>The List De-Duper</h1>
+        <p>Remove duplicates from email list./p>
+      </div>
+    </div>
+    <div class="container">
+      <ul class="nav nav-tabs" id="main-tabs">
+          <li role="presentation"><a href="#about-me" aria-controls="about-me" role="tab"
+          <li role="presentation" class="active"><a href="#about-shiz" aria-controls="about-shiz" role="tab"gle="tab">About The Algorithm</a></li>
+          <li role="presentation"><a href="#magical-mystery" aria-controls="magical-mystery" role="tab" data-toggle="tab">Magical Mystery Tour of the Algorithm used</a></li>
+          <li role="presentation"><a href="#shiz" aria-controls="shiz" role="tab" data-toggle="tab">The Algorithm used in Action</a></li>
+      </ul>
+
+
+      <div class="tab-content">
+        <div role="tabpanel" class="tab-pane fade" id="about-me">
+        <br />
+          <div class="panel panel-success">
+            <div class="panel-body">
+              <div class="page-header">
+                <h1>Glad you asked!</h1>
+                <h1><small>Links about me:</small></h1>
+                <p>
+                The usual suspects...<br />
+                <ul>
+                  <li><a href="https://www.linkedin.com/in/nicksardo">My LinkedIn</a></li>
+                  <li><a href="https://github.com/nsardo">My Github (I use it mainly for a toy, don't expect to weep from the coded sublimity)</a></li>
+                  <li><a href="http://nicksardo.wordpress.com">My erratically posted to Tech Blog</a></li>
+                </ul>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div role="tabpanel" class="tab-pane fade in active" id="about-shiz">
+        <br />
+          <div class="panel panel-info">
+            <div class="panel-body">
+              <p>
+                <strong>Specification:</strong><br />
+                A function that removes all duplicates from an unsorted list of email addresses. 
+                The <strong>constraints</strong> are:
+                <ul>
+                  <li>Leave the resulting list in the original order (same as the input).</li>
+                  <li>Be able to handle 100,000 email addresses containing 50% randomly placed duplicates in well under 1 second on a typical modern laptop.</li>
+                </ul>
+                <br />
+                <strong>Precondition:</strong><br />
+                The only pre-condition I've placed on the <em>input</em> list is that each item stands alone on a line, so just one email per line please. (Technically speaking, each line should be of the form: [emal][\n] meaning an email address followed immediately by the newline character).<br /><br />
+                <strong>Gratuitous, Self-Serving Analysis:</strong><br />
+                This implementatiin is acceptably good.  Tested with a list of 100,000 randomly generated "emails" with 50% duplicate. Runtime for the algorithm was approx. <em>120.262ms</em>  The algorythm used was naive, but giving results well within the constraints of the problem.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div role="tabpanel" class="tab-pane fade" id="magical-mystery">
+        <br />
+          <div class="panel panel-danger">
+            <div class="panel-body">
+              <div class="page-header">
+                <h1>The Algorithm, <small>annotated</small>...</h1>
+              </div>
+              <p>
+              The algorithm was turned into a node.js module for obvious reasons. Possibly at first blush, an unbovious "require" is that of the bluebird promise library. Upon reflection though, it will seem quite obvious: When we want to send the file to the browser, reading it and piping it as it's read is a decidedly asynchronous operation. The algorithm's module "promisified" the functions so that they would be "then-able", and so allow for this.
+              </p>
+              <code><pre>
+                const Promise = require('bluebird');
+                const fs      = require('fs');
+                const path      = require( 'path' );
+                module.exports = {
+              </pre></code>
+              <p>
+              To protect against a memory crash in the case of crazy huge files and/or server memory load, the file is read in as a stream, line by line.
+              </p>
+              <code><pre>
+                doAlg: ( fileN ) => {
+                      let hash = {}
+                        , readByLine = require('readline').createInterface({
+                            input: fs.createReadStream( fileN )
+                          });
+              </pre></code>
+              <p>
+              As each line is read in, the line (email address) is made the key of a hash.<br />
+              If we <em>haven't</em> seen this key before, it is assigned the value of 1. A clever increment by one (i.e., hash[line]++) can't be used for the initial encounter due to it being undefined.<br />
+              If we <em>have</em> seen it before, its key is incremented.<br />
+              <em>That's it...</em> That's the crux of the algorithm.  Underwhelming, I know.<br />
+              </p>
+              <code><pre>
+                return new Promise(function(resolve) {   
+                  console.time('foo');
+                  readByLine.on('line', function(line){
+                    if( typeof hash[line] == "undefined" ) {
+                      hash[line] = 1;
+                    } else {
+                      hash[line]++;
+                    }
+                  });
+                </pre></code>
+                <p>
+                The workings of this function are encased in a Bluebird Promise.<br />
+                When all the lines have been read, a <em>close</em> event is fired.<br />
+                Since the file is closed, the function can <em>resolve</em> the Promise.<br />
+                The resolution sends along the hash, so that it is available in the "then".
+                </p>
+                <code><pre>
+                      readByLine.on('close', function(){ 
+                        resolve( hash ); //so it can be passed along
+                      });
+                    });
+                  },
+                </pre></code>
+                <p>
+                Now we run back through the hash.<br />
+                If there is more than one occurence of the current line (email), we <em>only</em> write <em>one</em> to the file.<br />
+                Again, this is done as a stream, and so is "promisified". Doing it this way, line by line, satisfies the condition of<br />
+                writing it back out in the original order.<br />
+                Not rocket science. First, make it work. Then, if needed, make it fast...<br />
+                <super>*</super>&nbsp;&nbsp;<small>For this excercise, it is fast enough.  Your miliage may vary.</small>
+                </p>
+                <code><pre>
+                  writeOutFile: ( hash, fileN ) => {
+                          return new Promise(function( resolve ){
+                            let wn      = 'wn' + path.basename( fileN )
+                              , wfile   = path.join('./processed', wn )
+                              , wstream = fs.createWriteStream( wfile ) //web viewable file
+                              , nm      = 'dl' + path.basename( fileN )
+                              , dlfile  = path.join( './downloads/', nm ) //downloadable file
+                              , dstream = fs.createWriteStream( dlfile );
+
+                            for( let line in hash ) {
+                              if ( hash[line] >= 1 ) {
+                                wstream.write( line + '&lt;br /&gt;' );
+                                dstream.write( line + '\n' );
+                                continue; //next line
+                              }
+                            }
+                            wstream.end();
+                            dstream.end();
+                            resolve();
+                            console.timeEnd( 'foo' );
+                          });
+                  }
+              </pre></code>
+              <p>
+                Another point of the above function is that two write streams
+                are created, each writing to a separate file. The
+                <code>processed/</code> directory holds a de-duped file with its
+                returns translated to html &lt;br /&gt; tags so it displays
+                cleaner in the browser. The <code>downloads/</code> directory
+                hold a de-duped file that uses line returns, so best viewed in a
+                text document. This is the file offered for download to the
+                user.<br /><br />
+                <strong>Postmortem:</strong><br />
+                Other obvious things that could improve this, of which there are may. Here a a few: 
+                <ul>
+                  <li>Helpful toast's</li>
+                  <li>users, that can then have their own "directories", and select files from</li>
+                  <li>error checking against type of file uploaded (ensure it is within parameters)</li>
+                </ul>
+              </p>
+            </div>
+          </div>  
+        </div>
+        <div role="tabpanel" class="tab-pane fade" id="shiz">
+        <br />
+          <div class="panel panel-primary">
+            <div class="panel-body">
+              <div id="form-div">
+                <!-- application/x-www-form-urlencoded --> 
+                <form enctype="multipart/form-data" method="post" action="/">
+                  <div class="input-group">
+                    <span class="input-group-addon" id="file-addon">Upload File</span>
+                    <input type="file" class="form-control" aria-describedby="file-addon"><br /><br />
+                  </div>
+                  <span class="col-md-offset-4">
+                    <button class="btn btn-success" role="button" id="submit-button">Upload List</button>
+                  </span>
+                </form>
+                <div id="progress">
+                  <div id="bar"></div>
+                  <div id="percent">0%</div >
+                </div>
+              </div>
+              <div id="alg-div">
+                  <h1 class="page-header" style="display:inline-block;">Run the Algorythm...<small>and pray...&nbsp;&nbsp;</small></h1>&nbsp;&nbsp;&nbsp;&nbsp;
+                  <button id="run-alg" class="btn btn-primary">Run...</button>&nbsp;&nbsp;&nbsp;&nbsp;
+                  <button id="download" class="btn btn-info">Download de-duped list...</button>&nbsp;&nbsp;&nbsp;&nbsp;
+                  <button id="reset" class="btn btn-warning">Reset</button>
+                  <br /><br />
+                  <div><p id="completed"></p></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="../js/csa.js"></script>
+  </body>
+</html>
