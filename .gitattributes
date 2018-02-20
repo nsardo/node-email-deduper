@@ -1,1 +1,2 @@
-public/html/ linguist-vendored
+coverage/* linguist-vendored
+jsdoc/* linguist-vendored
