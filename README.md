@@ -1,5 +1,5 @@
 # email-diff-ex algorithm
-![Screen Cast](https://github.com/nsardo/chefsteps/blob/master/shiz.gif)
+![Screen Cast](https://github.com/nsardo/node-email-deduper.git)
 
 ## NOTA BENE
 This is example code.
