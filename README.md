@@ -2,7 +2,7 @@
 ![Screen Cast](https://github.com/nsardo/node-email-deduper/blob/master/dedup.gif)
 
 ## NOTA BENE
-This is example code.
+This is example code, hacked out rather quickly. Not ready for production use.
 
 You need to create three directories if they are not present: uploads/ downloads/ and processed/
 This can be done on the commandline as follows ($ denotes command prompt):
